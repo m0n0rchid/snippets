@@ -22,7 +22,7 @@ namespace XOR
         static void Main(string[] args)
         {
             byte[] buf = new byte[721] {
-                // INSERT MSFVENOM CODE HERE
+                // INSERT XOR'd CODE HERE
             };
 
             for (int i = 0; i < buf.Length; i++)
